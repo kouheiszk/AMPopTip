@@ -28,7 +28,7 @@
 @property (nonatomic, strong) NSString *text;
 @property (nonatomic, strong) NSAttributedString *attributedText;
 @property (nonatomic, strong) NSMutableParagraphStyle *paragraphStyle;
-@property (nonatomic, strong) UITapGestureRecognizer *gestureRecognizer;
+@property (nonatomic, strong) UILongPressGestureRecognizer *gestureRecognizer;
 @property (nonatomic, strong) UITapGestureRecognizer *removeGesture;
 @property (nonatomic, strong) NSTimer *dismissTimer;
 @property (nonatomic, weak  ) UIView *containerView;
@@ -204,19 +204,42 @@
     
     self.backgroundColor = [UIColor clearColor];
     self.frame = frame;
-    
-    self.gestureRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleTap:)];
+
+    self.gestureRecognizer = [[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(handleTap:)];
+    self.gestureRecognizer.minimumPressDuration = 0;
     [self addGestureRecognizer:self.gestureRecognizer];
     [self setNeedsDisplay];
 }
 
-- (void)handleTap:(UITapGestureRecognizer *)gesture
+- (void)handleTap:(UILongPressGestureRecognizer *)gesture
 {
-    if (self.shouldDismissOnTap) {
-        [self hide];
+    if (gesture.state == UIGestureRecognizerStateBegan || gesture.state == UIGestureRecognizerStateChanged) {
+        CGPoint touchedPoint = [gesture locationInView:self];
+        if (CGRectContainsPoint(self.bounds, touchedPoint)) {
+            self.highlighted = YES;
+        }
+        else {
+            dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, 0.2 * NSEC_PER_SEC);
+            dispatch_after(popTime, dispatch_get_main_queue(), ^{
+                self.highlighted = NO;
+            });
+        }
     }
-    if (self.tapHandler) {
-        self.tapHandler();
+    else if (gesture.state == UIGestureRecognizerStateEnded) {
+        CGPoint touchedPoint = [gesture locationInView:self];
+        if (CGRectContainsPoint(self.bounds, touchedPoint)) {
+            if (self.shouldDismissOnTap) {
+                [self hide];
+            }
+            if (self.tapHandler) {
+                self.tapHandler();
+            }
+
+            dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, 0.2 * NSEC_PER_SEC);
+            dispatch_after(popTime, dispatch_get_main_queue(), ^{
+                self.highlighted = NO;
+            });
+        }
     }
 }
 

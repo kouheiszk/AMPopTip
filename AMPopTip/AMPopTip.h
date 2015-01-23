@@ -16,7 +16,7 @@ typedef NS_ENUM(NSInteger, AMPopTipDirection) {
     AMPopTipDirectionNone
 };
 
-@interface AMPopTip : UIView
+@interface AMPopTip : UIControl
 
 /**-----------------------------------------------------------------------------
  * @name AMPopTip

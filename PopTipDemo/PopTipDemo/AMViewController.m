@@ -42,6 +42,7 @@
     };
 }
 
+
 - (IBAction)actionButton:(UIButton *)sender
 {
     [self.popTip hide];
